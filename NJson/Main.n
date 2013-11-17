@@ -1,0 +1,22 @@
+﻿using Nemerle.Collections;
+using Nemerle.Text;
+using Nemerle.Utility;
+
+using System;
+using System.Collections.Generic;
+using System.Console;
+using System.Linq;
+
+namespace NJson
+{
+    module Program
+    {
+      Main() : void
+      {
+        def input = ReadLine();
+        def grammar = Grammar();
+        def result = grammar.Parse(input);
+        _ = WriteLine(result)
+      }
+    }
+}

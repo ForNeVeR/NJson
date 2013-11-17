@@ -1,0 +1,66 @@
+﻿using Nemerle;
+using Nemerle.Collections;
+using Nemerle.Peg;
+using Nemerle.Text;
+using Nemerle.Utility;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace NJson
+{
+  /// <summary>
+  /// JSON grammar.
+  /// </summary>
+  [PegGrammar(Options = EmitDebugSources, jsonObject,
+  grammar
+  {
+      character : char = ['a'..'z'];
+      comma : void = ',';
+      
+      jsonObject : JsonValue = '{' keyValuePair* '}';
+      jsonList : JsonValue = '[' (value comma)* ']';
+      jsonString : JsonValue = '"' character* '"';
+      
+      keyValuePair : string * JsonValue = jsonString ':' value;
+      value : JsonValue = jsonObject / jsonList / jsonString;      
+  })]
+  class Grammar
+  {
+      character(value : NToken) : char
+      {
+          ParsingSource.Text[value.StartPos]
+      }
+      
+      jsonObject(_ : NToken, values : List[string * JsonValue], _ : NToken) : JsonValue
+      {
+          def data = Hashtable();
+          foreach (v in values)
+          {
+              data.Add(v[0], v[1])
+          }
+          
+          JsonValue.Object(data)
+      }
+      
+      jsonList(_ : NToken, values : List[JsonValue], _ : NToken) : JsonValue
+      {
+          JsonValue.List(values)
+      }
+      
+      jsonString(_ : NToken, value : List[char], _ : NToken) : JsonValue
+      {
+          JsonValue.String(string.Join(string.Empty, value))
+      }
+      
+      keyValuePair(key : JsonValue, _ : NToken, value : JsonValue) : string * JsonValue
+      {
+          match (key)
+          {
+              | String(s) => (s, value)
+              | _ => throw Exception("Impossible happened")
+          }
+      }
+  }
+}
